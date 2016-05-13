@@ -14,11 +14,11 @@ namespace ConsumerTestApplication.DatabaseContexts
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{
-			base.OnModelCreating(modelBuilder);
-
 			// Overrides for the convention-based mappings.
 			// We're assuming that all our fluent mappings are declared in this assembly.
 			modelBuilder.Configurations.AddFromAssembly(Assembly.GetAssembly(typeof(SchoolDbContext)));
+
+			base.OnModelCreating(modelBuilder);
 		}
 	}
 }
