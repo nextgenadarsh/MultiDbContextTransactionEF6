@@ -21,12 +21,12 @@ namespace ConsumerTestApplication.BusinessLogic
 		public StudentCreationManager(IDbContextScopeFactory dbContextScopeFactory, IRepository<Student> studentRepository)
 		{
 			if (dbContextScopeFactory == null) throw new ArgumentNullException("dbContextScopeFactory");
-			if (studentRepository == null) throw new ArgumentNullException("userRepository");
+			if (studentRepository == null) throw new ArgumentNullException("studentRepository");
 			_dbContextScopeFactory = dbContextScopeFactory;
 			_studentRepository = studentRepository;
 		}
 
-		public void CreateUser(StudentCreationSpec studentToCreate)
+		public void CreateStudent(StudentCreationSpec studentToCreate)
 		{
 			if (studentToCreate == null)
 				throw new ArgumentNullException("studentToCreate");
@@ -40,7 +40,7 @@ namespace ConsumerTestApplication.BusinessLogic
 			using (var dbContextScope = _dbContextScopeFactory.Create())
 			{
 				//-- Build domain model
-				var user = new Student()
+				var student = new Student()
 				           {
 							   Id = studentToCreate.Id,
 							   Name = studentToCreate.Name,
@@ -50,33 +50,33 @@ namespace ConsumerTestApplication.BusinessLogic
 				           };
 
 				//-- Persist
-				_studentRepository.Add(user);
+				_studentRepository.Add(student);
 				dbContextScope.SaveChanges();
 			}
 		}
 
-		public void CreateListOfUsers(params StudentCreationSpec[] usersToCreate)
+		public void CreateListOfStudents(params StudentCreationSpec[] studentsToCreate)
 		{
 			/*
 			 * Example of DbContextScope nesting in action. 
 			 * 
-			 * We already have a service method - CreateUser() - that knows how to create a new user
-			 * and implements all the business rules around the creation of a new user 
+			 * We already have a service method - CreateStudent() - that knows how to create a new student
+			 * and implements all the business rules around the creation of a new student 
 			 * (e.g. validation, initialization, sending notifications to other domain model objects...).
 			 * 
-			 * So we'll just call it in a loop to create the list of new users we've 
+			 * So we'll just call it in a loop to create the list of new students we've 
 			 * been asked to create.
 			 * 
 			 * Of course, since this is a business logic service method, we are making 
 			 * an implicit guarantee to whoever is calling us that the changes we make to 
 			 * the system will be either committed or rolled-back in an atomic manner. 
-			 * I.e. either all the users we've been asked to create will get persisted
+			 * I.e. either all the students we've been asked to create will get persisted
 			 * or none of them will. It would be disastrous to have a partial failure here
-			 * and end up with some users but not all having been created.
+			 * and end up with some students but not all having been created.
 			 * 
 			 * DbContextScope makes this trivial to implement. 
 			 * 
-			 * The inner DbContextScope instance that the CreateUser() method creates
+			 * The inner DbContextScope instance that the CreateStudent() method creates
 			 * will join our top-level scope. This ensures that the same DbContext instance is
 			 * going to be used throughout this business transaction.
 			 * 
@@ -84,9 +84,9 @@ namespace ConsumerTestApplication.BusinessLogic
 
 			using (var dbContextScope = _dbContextScopeFactory.Create())
 			{
-				foreach (var toCreate in usersToCreate)
+				foreach (var toCreate in studentsToCreate)
 				{
-					CreateUser(toCreate);
+					CreateStudent(toCreate);
 				}
 
 				// All the changes will get persisted here
@@ -94,32 +94,32 @@ namespace ConsumerTestApplication.BusinessLogic
 			}
 		}
 
-		public void CreateListOfUsersWithIntentionalFailure(params StudentCreationSpec[] usersToCreate)
+		public void CreateListOfStudentsWithIntentionalFailure(params StudentCreationSpec[] studentsToCreate)
 		{
 			/*
 			 * Here, we'll verify that inner DbContextScopes really join the parent scope and 
 			 * don't persist their changes until the parent scope completes successfully. 
 			 */
 
-			var firstUser = true;
+			var firstStudent = true;
 
 			using (var dbContextScope = _dbContextScopeFactory.Create())
 			{
-				foreach (var toCreate in usersToCreate)
+				foreach (var toCreate in studentsToCreate)
 				{
-					if (firstUser)
+					if (firstStudent)
 					{
-						CreateUser(toCreate);
-						Console.WriteLine("Successfully created a new User named '{0}'.", toCreate.Name);
-						firstUser = false;
+						CreateStudent(toCreate);
+						Console.WriteLine("Successfully created a new Student named '{0}'.", toCreate.Name);
+						firstStudent = false;
 					}
 					else
 					{
-						// OK. So we've successfully persisted one user.
+						// OK. So we've successfully persisted one student.
 						// We're going to simulate a failure when attempting to 
-						// persist the second user and see what ends up getting 
+						// persist the second student and see what ends up getting 
 						// persisted in the DB.
-						throw new Exception(String.Format("Oh no! An error occurred when attempting to create user named '{0}' in our database.", toCreate.Name));
+						throw new Exception(String.Format("Oh no! An error occurred when attempting to create student named '{0}' in our database.", toCreate.Name));
 					}
 				}
 

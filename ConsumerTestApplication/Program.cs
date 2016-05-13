@@ -14,54 +14,54 @@ namespace ConsumerTestApplication
 			//-- Poor-man DI - build our dependencies by hand for this demo
 			var dbContextScopeFactory = new DbContextScopeFactory();
 			var dbContextLocator = new DbContextLocator();
-			var userRepository = new StudentRepository(dbContextLocator);
+			var studentRepository = new StudentRepository(dbContextLocator);
 
-			var userCreationService = new StudentCreationManager(dbContextScopeFactory, userRepository);
-			var userQueryService = new StudentQueryManager(dbContextScopeFactory, userRepository);
-			var userEmailService = new StudentEmailManager(dbContextScopeFactory);
-			var userCreditScoreService = new StudentScoreManager(dbContextScopeFactory);
+			var studentCreationService = new StudentCreationManager(dbContextScopeFactory, studentRepository);
+			var studentQueryService = new StudentQueryManager(dbContextScopeFactory, studentRepository);
+			var studentEmailService = new StudentEmailManager(dbContextScopeFactory);
+			var studentCreditScoreService = new StudentScoreManager(dbContextScopeFactory);
 
 			try
 			{
-				Console.WriteLine("This demo application will create a database named DbContextScopeDemo in the default SQL Server instance on localhost. Edit the connection string in UserManagementDbContext if you'd like to create it somewhere else.");
+				Console.WriteLine("This demo application will create a database named DbContextScopeDemo in the default SQL Server instance on localhost. Edit the connection string in StudentManagementDbContext if you'd like to create it somewhere else.");
 				Console.WriteLine("Press enter to start...");
 				Console.ReadLine();
 
 				//-- Demo of typical usage for read and writes
-				Console.WriteLine("Creating a user called Mary...");
+				Console.WriteLine("Creating a student called Mary...");
 				var marysSpec = new StudentCreationSpec("Mary", "mary@example.com");
-				userCreationService.CreateUser(marysSpec);
+				studentCreationService.CreateStudent(marysSpec);
 				Console.WriteLine("Done.\n");
 
-				Console.WriteLine("Trying to retrieve our newly created user from the data store...");
-				var mary = userQueryService.GetUser(marysSpec.Id);
-				Console.WriteLine("OK. Persisted user: {0}", mary);
+				Console.WriteLine("Trying to retrieve our newly created student from the data store...");
+				var mary = studentQueryService.GetStudent(marysSpec.Id);
+				Console.WriteLine("OK. Persisted student: {0}", mary);
 
 				Console.WriteLine("Press enter to continue...");
 				Console.ReadLine();
 
 				//-- Demo of nested DbContextScopes
-				Console.WriteLine("Creating 2 new users called John and Jeanne in an atomic transaction...");
+				Console.WriteLine("Creating 2 new students called John and Jeanne in an atomic transaction...");
 				var johnSpec = new StudentCreationSpec("John", "john@example.com");
 				var jeanneSpec = new StudentCreationSpec("Jeanne", "jeanne@example.com");
-				userCreationService.CreateListOfUsers(johnSpec, jeanneSpec);
+				studentCreationService.CreateListOfStudents(johnSpec, jeanneSpec);
 				Console.WriteLine("Done.\n");
 
-				Console.WriteLine("Trying to retrieve our newly created users from the data store...");
-				var createdUsers = userQueryService.GetUsers(johnSpec.Id, jeanneSpec.Id);
-				Console.WriteLine("OK. Found {0} persisted users.", createdUsers.Count());
+				Console.WriteLine("Trying to retrieve our newly created students from the data store...");
+				var createdStudents = studentQueryService.GetStudents(johnSpec.Id, jeanneSpec.Id);
+				Console.WriteLine("OK. Found {0} persisted students.", createdStudents.Count());
 
 				Console.WriteLine("Press enter to continue...");
 				Console.ReadLine();
 
 				//-- Demo of nested DbContextScopes in the face of an exception. 
-				// If any of the provided users failed to get persisted, none should get persisted. 
-				Console.WriteLine("Creating 2 new users called Julie and Marc in an atomic transaction. Will make the persistence of the second user fail intentionally in order to test the atomicity of the transaction...");
+				// If any of the provided students failed to get persisted, none should get persisted. 
+				Console.WriteLine("Creating 2 new students called Julie and Marc in an atomic transaction. Will make the persistence of the second student fail intentionally in order to test the atomicity of the transaction...");
 				var julieSpec = new StudentCreationSpec("Julie", "julie@example.com");
 				var marcSpec = new StudentCreationSpec("Marc", "marc@example.com");
 				try
 				{
-					userCreationService.CreateListOfUsersWithIntentionalFailure(julieSpec, marcSpec);
+					studentCreationService.CreateListOfStudentsWithIntentionalFailure(julieSpec, marcSpec);
 					Console.WriteLine("Done.\n");
 				}
 				catch (Exception e)
@@ -70,29 +70,29 @@ namespace ConsumerTestApplication
 					Console.WriteLine();
 				}
 
-				Console.WriteLine("Trying to retrieve our newly created users from the data store...");
-				var maybeCreatedUsers = userQueryService.GetUsers(julieSpec.Id, marcSpec.Id);
-				Console.WriteLine("Found {0} persisted users. If this number is 0, we're all good. If this number is not 0, we have a big problem.", maybeCreatedUsers.Count());
+				Console.WriteLine("Trying to retrieve our newly created students from the data store...");
+				var maybeCreatedStudents = studentQueryService.GetStudents(julieSpec.Id, marcSpec.Id);
+				Console.WriteLine("Found {0} persisted students. If this number is 0, we're all good. If this number is not 0, we have a big problem.", maybeCreatedStudents.Count());
 
 				Console.WriteLine("Press enter to continue...");
 				Console.ReadLine();
 
 				//-- Demo of DbContextScope within an async flow
-				Console.WriteLine("Trying to retrieve two users John and Jeanne sequentially in an asynchronous manner...");
+				Console.WriteLine("Trying to retrieve two students John and Jeanne sequentially in an asynchronous manner...");
 				// We're going to block on the async task here as we don't have a choice. No risk of deadlocking in any case as console apps
 				// don't have a synchronization context.
-				var usersFoundAsync = userQueryService.GetTwoUsersAsync(johnSpec.Id, jeanneSpec.Id).Result;
-				Console.WriteLine("OK. Found {0} persisted users.", usersFoundAsync.Count());
+				var studentsFoundAsync = studentQueryService.GetTwoStudentsAsync(johnSpec.Id, jeanneSpec.Id).Result;
+				Console.WriteLine("OK. Found {0} persisted students.", studentsFoundAsync.Count());
 
 				Console.WriteLine("Press enter to continue...");
 				Console.ReadLine();
 
 				//-- Demo of explicit database transaction. 
-				Console.WriteLine("Trying to retrieve user John within a READ UNCOMMITTED database transaction...");
+				Console.WriteLine("Trying to retrieve student John within a READ UNCOMMITTED database transaction...");
 				// You'll want to use SQL Profiler or Entity Framework Profiler to verify that the correct transaction isolation
 				// level is being used.
-				var userMaybeUncommitted = userQueryService.GetUserUncommitted(johnSpec.Id);
-				Console.WriteLine("OK. User found: {0}", userMaybeUncommitted);
+				var studentMaybeUncommitted = studentQueryService.GetStudentUncommitted(johnSpec.Id);
+				Console.WriteLine("OK. Student found: {0}", studentMaybeUncommitted);
 
 				Console.WriteLine("Press enter to continue...");
 				Console.ReadLine();
@@ -111,7 +111,7 @@ namespace ConsumerTestApplication
 
 					// Now call our SendWelcomeEmail() business logic service method, which will
 					// update John in a non-nested child context
-					userEmailService.SendWelcomeEmail(johnSpec.Id);
+					studentEmailService.SendWelcomeEmail(johnSpec.Id);
 
 					// Verify that we can see the modifications made to John by the SendWelcomeEmail() method
 					Console.WriteLine("After calling SendWelcomeEmail(), john.WelcomeEmailSent = " + john.WelcomeEmailSent);
@@ -125,8 +125,8 @@ namespace ConsumerTestApplication
 				Console.ReadLine();
 
 				//-- Demonstration of DbContextScope and parallel programming
-				Console.WriteLine("Calculating and storing the credit score of all users in the database in parallel...");
-				userCreditScoreService.UpdateCreditScoreForAllUsers();
+				Console.WriteLine("Calculating and storing the credit score of all students in the database in parallel...");
+				studentCreditScoreService.UpdateCreditScoreForAllStudents();
 				Console.WriteLine("Done.");
 			}
 			catch (Exception e)

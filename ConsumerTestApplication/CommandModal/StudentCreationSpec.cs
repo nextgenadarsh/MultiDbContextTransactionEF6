@@ -4,12 +4,12 @@ namespace ConsumerTestApplication.CommandModal
 {
 
 	/// <summary>
-	/// Specifications of the CreateUser command. Defines the properties of a new user.
+	/// Specifications of the CreateStudent command. Defines the properties of a new student.
 	/// </summary>
 	public class StudentCreationSpec
 	{
 		/// <summary>
-		/// The Id automatically generated for this user.
+		/// The Id automatically generated for this student.
 		/// </summary>
 		public Guid Id { get; protected set; }
 

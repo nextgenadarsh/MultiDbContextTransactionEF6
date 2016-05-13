@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
+﻿using System.Data.Entity;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using ConsumerTestApplication.DomainModel;
 
 namespace ConsumerTestApplication.DatabaseContexts
 {
 	public class SchoolDbContext : DbContext
 	{
-// Map our 'User' model by convention
+// Map our 'Student' model by convention
 		public DbSet<Student> Students{ get; set; }
 
-		public SchoolDbContext() : base("Server=localhost;Database=DbContextScopeDemo;Trusted_Connection=true;")
+		public SchoolDbContext() : base("SchoolDB")
 		{}
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)

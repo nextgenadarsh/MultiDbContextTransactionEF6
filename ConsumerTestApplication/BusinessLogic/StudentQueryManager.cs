@@ -21,12 +21,12 @@ namespace ConsumerTestApplication.BusinessLogic
 		public StudentQueryManager(IDbContextScopeFactory dbContextScopeFactory, IRepository<Student> studentRepository)
 		{
 			if (dbContextScopeFactory == null) throw new ArgumentNullException("dbContextScopeFactory");
-			if (studentRepository == null) throw new ArgumentNullException("userRepository");
+			if (studentRepository == null) throw new ArgumentNullException("studentRepository");
 			_dbContextScopeFactory = dbContextScopeFactory;
 			_studentRepository = studentRepository;
 		}
 
-		public Student GetUser(Guid userId)
+		public Student GetStudent(Guid studentId)
 		{
 			/*
 			 * An example of using DbContextScope for read-only queries. 
@@ -39,28 +39,28 @@ namespace ConsumerTestApplication.BusinessLogic
 			using (var dbContextScope = _dbContextScopeFactory.CreateReadOnly())
 			{
 				var dbContext = dbContextScope.DbContexts.Get<SchoolDbContext>();
-				var user = dbContext.Students.Find(userId);
+				var student = dbContext.Students.Find(studentId);
 
-				if (user == null)
-					throw new ArgumentException(String.Format("Invalid value provided for userId: [{0}]. Couldn't find a user with this ID.", userId));
+				if (student == null)
+					throw new ArgumentException(String.Format("Invalid value provided for studentId: [{0}]. Couldn't find a student with this ID.", studentId));
 
-				return user;
+				return student;
 			}
 		}
 
-		public IEnumerable<Student> GetUsers(params Guid[] userIds)
+		public IEnumerable<Student> GetStudents(params Guid[] studentIds)
 		{
 			using (var dbContextScope = _dbContextScopeFactory.CreateReadOnly())
 			{
 				var dbContext = dbContextScope.DbContexts.Get<SchoolDbContext>();
-				return dbContext.Students.Where(u => userIds.Contains(u.Id)).ToList();
+				return dbContext.Students.Where(u => studentIds.Contains(u.Id)).ToList();
 			}
 		}
 
-		public Student GetUserViaRepository(Guid userId)
+		public Student GetStudentViaRepository(Guid studentId)
 		{
 			/*
-			 * Same as GetUsers() but using a repository layer instead of accessing the 
+			 * Same as GetStudents() but using a repository layer instead of accessing the 
 			 * EF DbContext directly.
 			 * 
 			 * Note how we don't have to worry about knowing what type of DbContext the 
@@ -75,16 +75,16 @@ namespace ConsumerTestApplication.BusinessLogic
 			 */
 			using (_dbContextScopeFactory.CreateReadOnly())
 			{
-				var user = _studentRepository.Get(userId);
+				var student = _studentRepository.Get(studentId);
 
-				if (user == null)
-					throw new ArgumentException(String.Format("Invalid value provided for userId: [{0}]. Couldn't find a user with this ID.", userId));
+				if (student == null)
+					throw new ArgumentException(String.Format("Invalid value provided for studentId: [{0}]. Couldn't find a student with this ID.", studentId));
 
-				return user;
+				return student;
 			}
 		}
 
-		public async Task<IList<Student>> GetTwoUsersAsync(Guid studentId1, Guid studentId2)
+		public async Task<IList<Student>> GetTwoStudentsAsync(Guid studentId1, Guid studentId2)
 		{
 			/*
 			 * A very contrived example of ambient DbContextScope within an async flow.
@@ -107,7 +107,7 @@ namespace ConsumerTestApplication.BusinessLogic
 
 			using (_dbContextScopeFactory.CreateReadOnly())
 			{
-				var user1 = await _studentRepository.GetAsync(studentId1).ConfigureAwait(false);
+				var student1 = await _studentRepository.GetAsync(studentId1).ConfigureAwait(false);
 
 				// We're now in the continuation of the first async task. This is most
 				// likely executing in a thread from the ThreadPool, i.e. in a different
@@ -115,16 +115,16 @@ namespace ConsumerTestApplication.BusinessLogic
 				// DbContextScope is still available here however, which allows the call 
 				// below to succeed.
 
-				var user2 = await _studentRepository.GetAsync(studentId2).ConfigureAwait(false);
+				var student2 = await _studentRepository.GetAsync(studentId2).ConfigureAwait(false);
 
 				// In other words, DbContextScope works with async execution flow as you'd expect: 
 				// It Just Works.  
 
-				return new List<Student> {user1, user2}.Where(u => u != null).ToList();
+				return new List<Student> {student1, student2}.Where(u => u != null).ToList();
 			}
 		}
 
-		public Student GetUserUncommitted(Guid userId)
+		public Student GetStudentUncommitted(Guid studentId)
 		{
 			/*
 			 * An example of explicit database transaction. 
@@ -134,7 +134,7 @@ namespace ConsumerTestApplication.BusinessLogic
 			 */
 			using (_dbContextScopeFactory.CreateReadOnlyWithTransaction(IsolationLevel.ReadUncommitted))
 			{
-				return _studentRepository.Get(userId);
+				return _studentRepository.Get(studentId);
 			}
 		}
 	}

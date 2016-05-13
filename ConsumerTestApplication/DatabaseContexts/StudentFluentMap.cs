@@ -9,7 +9,7 @@ using ConsumerTestApplication.DomainModel;
 namespace ConsumerTestApplication.DatabaseContexts
 {
 	/// <summary>
-	/// Defines the convention-based mapping overrides for the User model. 
+	/// Defines the convention-based mapping overrides for the Student model. 
 	/// </summary>
 	public class StudentFluentMap : EntityTypeConfiguration<Student>
 	{

@@ -18,7 +18,7 @@ public class StudentEmailManager
 			_dbContextScopeFactory = dbContextScopeFactory;
 		}
 
-		public void SendWelcomeEmail(Guid userId)
+		public void SendWelcomeEmail(Guid studentId)
 		{
 			/*
 			 * Demo of forcing the creation of a new DbContextScope
@@ -31,9 +31,9 @@ public class StudentEmailManager
 			 * as possible (and ideally, never).
 			 */
 
-			// We're going to send a welcome email to the provided user
+			// We're going to send a welcome email to the provided student
 			// (if one hasn't been sent already). Once sent, we'll update
-			// that User entity in our DB to record that its Welcome email
+			// that Student entity in our DB to record that its Welcome email
 			// has been sent.
 
 			// Emails can't be rolled-back. Once they're sent, they're sent. 
@@ -43,7 +43,7 @@ public class StudentEmailManager
 			// business transaction and even if that parent business transaction
 			// ends up failing for any reason, we still must ensure that
 			// we have recorded the fact that the Welcome email has been sent.
-			// Otherwise, we would risk spamming our users with repeated Welcome
+			// Otherwise, we would risk spamming our students with repeated Welcome
 			// emails. 
 
 			// Force the creation of a new DbContextScope so that the changes we make here are
@@ -51,15 +51,15 @@ public class StudentEmailManager
 			using (var dbContextScope = _dbContextScopeFactory.Create(DbContextScopeOption.ForceCreateNew))
 			{
 				var dbContext = dbContextScope.DbContexts.Get<SchoolDbContext>();
-				var user = dbContext.Students.Find(userId);
+				var student = dbContext.Students.Find(studentId);
 
-				if (user == null)
-					throw new ArgumentException(String.Format("Invalid userId provided: {0}. Couldn't find a User with this ID.", userId));
+				if (student == null)
+					throw new ArgumentException(String.Format("Invalid studentId provided: {0}. Couldn't find a Student with this ID.", studentId));
 
-				if (!user.WelcomeEmailSent)
+				if (!student.WelcomeEmailSent)
 				{
-					SendEmail(user.Email);
-					user.WelcomeEmailSent = true;
+					SendEmail(student.Email);
+					student.WelcomeEmailSent = true;
 				}
 
 				dbContextScope.SaveChanges();
@@ -67,7 +67,7 @@ public class StudentEmailManager
 				// When you force the creation of a new DbContextScope, you must force the parent
 				// scope (if any) to reload the entities you've modified here. Otherwise, the method calling
 				// you might not be able to see the changes you made here.
-				dbContextScope.RefreshEntitiesInParentScope(new List<Student> {user});
+				dbContextScope.RefreshEntitiesInParentScope(new List<Student> {student});
 			}
 		}
 
